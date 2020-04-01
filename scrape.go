@@ -47,8 +47,9 @@ type movie struct {
 }
 
 type actor struct {
-	Name   string `json:"name"`
-	ImdbID string `json:"imdb_id"`
+	Name     string `json:"name"`
+	ImdbID   string `json:"imdb_id"`
+	ImageURL string `json:"image_url"`
 }
 
 type actormovies struct {
@@ -212,14 +213,16 @@ func scrapeListActors(c *colly.Collector, urlfmt string) {
 	var p int = 1
 	var actors []actor
 
-	c.OnHTML(".lister-item-header a", func(e *colly.HTMLElement) {
+	c.OnHTML(".lister-item", func(e *colly.HTMLElement) {
 		found = true
-		name := strings.TrimSpace(e.Text)
-		imdbID := nameID.FindString(e.Attr("href"))
+		name := strings.TrimSpace(e.ChildText(".lister-item-header a"))
+		imdbID := nameID.FindString(e.ChildAttr(".lister-item-header a", "href"))
+		image := strings.TrimSpace(e.ChildAttr(".lister-item-image img", "src"))
 
 		actors = append(actors, actor{
-			Name:   name,
-			ImdbID: imdbID,
+			Name:     name,
+			ImdbID:   imdbID,
+			ImageURL: image,
 		})
 		save("./scraped/listactors/listactors-"+*id+".json", actors)
 	})
